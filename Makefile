@@ -5,6 +5,9 @@ build:
 run:
 	go run cmd/app/main.go
 
+get:
+	go get -d -v ./...
+
 test:
 	go test ./...
 
