@@ -1,0 +1,10 @@
+app:
+  name: "wallet-infotecs"
+  version: "1.0.0"
+  default_balance: 100.0
+
+http:
+  port: "8000"
+
+logger:
+  log_level: "debug"

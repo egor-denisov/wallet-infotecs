@@ -1,0 +1,5 @@
+DROP FUNCTION IF EXISTS make_uid();
+
+DROP TABLE IF EXISTS wallets;
+
+DROP TABLE IF EXISTS transactions;

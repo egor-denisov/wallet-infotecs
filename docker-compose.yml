@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  wallet-infotecs:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - ${HTTP_PORT}:${HTTP_PORT}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+volumes:
+  pgdata: {}
