@@ -92,6 +92,7 @@ func (r *WalletRepo) GetWalletHistoryById(ctx context.Context, walletId string) 
 
 	err = r.DB.Model(&transactions).
 		Where("from_wallet_id = ?", walletId).
+		WhereOr("to_wallet_id = ?", walletId).
 		Select()
 		
 	if err != nil {

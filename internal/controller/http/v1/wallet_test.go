@@ -141,6 +141,32 @@ func Test_sendFunds(t *testing.T) {
 			expectedResponseBody: "",
 		},
 		{
+			name: "Wrong input - amount is 0",
+			id: "5b53700ed469fa6a09ea72bb78f36fd9",
+			transactionRequest: entity.TransactionRequest{
+				To: "eb376add88bf8e70f80787266a0801d5",
+				Amount: 0.0,
+			},
+			mockBehavior: func(r *mock_usecase.MockWallet, id string, transactionRequest entity.TransactionRequest) {
+				r.EXPECT().SendFunds(context.Background(), id, transactionRequest.To, transactionRequest.Amount).Return(entity.ErrWrongAmount)
+			},
+			expectedStatusCode: 400,
+			expectedResponseBody: "",
+		},
+		{
+			name: "Wrong input - amount less 0",
+			id: "5b53700ed469fa6a09ea72bb78f36fd9",
+			transactionRequest: entity.TransactionRequest{
+				To: "eb376add88bf8e70f80787266a0801d5",
+				Amount: -10.0,
+			},
+			mockBehavior: func(r *mock_usecase.MockWallet, id string, transactionRequest entity.TransactionRequest) {
+				r.EXPECT().SendFunds(context.Background(), id, transactionRequest.To, transactionRequest.Amount).Return(entity.ErrWrongAmount)
+			},
+			expectedStatusCode: 400,
+			expectedResponseBody: "",
+		},
+		{
 			name: "Wrong input - empty request body",
 			id: "5b53700ed469fa6a09ea72bb78f36fd9",
 			transactionRequest: entity.TransactionRequest{},
@@ -220,7 +246,31 @@ func Test_getWalletHistoryById(t *testing.T) {
 		expectedResponseBody string
 	}{
 		{
-			name: "Ok - history exists",
+			name: "Ok - history exists (sending and receiving)",
+			id: "5b53700ed469fa6a09ea72bb78f36fd9",
+			mockBehavior: func(r *mock_usecase.MockWallet, id string) {
+				t, _ := time.Parse(time.RFC3339, "2024-02-04T17:25:35.448Z")
+
+				r.EXPECT().GetWalletHistoryById(context.Background(), id).Return([]entity.Transaction{
+					{
+						Time: t,
+						From: "5b53700ed469fa6a09ea72bb78f36fd9",
+						To: "eb376add88bf8e70f80787266a0801d5",
+						Amount: 30.0,
+					},
+					{
+						Time: t,
+						From: "eb376add88bf8e70f80787266a0801d5",
+						To: "5b53700ed469fa6a09ea72bb78f36fd9",
+						Amount: 30.0,
+					},
+				}, nil)
+			},
+			expectedStatusCode: 200,
+			expectedResponseBody: `[{"time":"2024-02-04T17:25:35.448Z","from":"5b53700ed469fa6a09ea72bb78f36fd9","to":"eb376add88bf8e70f80787266a0801d5","amount":30},{"time":"2024-02-04T17:25:35.448Z","from":"eb376add88bf8e70f80787266a0801d5","to":"5b53700ed469fa6a09ea72bb78f36fd9","amount":30}]`,
+		},
+		{
+			name: "Ok - history exists (only sending)",
 			id: "5b53700ed469fa6a09ea72bb78f36fd9",
 			mockBehavior: func(r *mock_usecase.MockWallet, id string) {
 				t, _ := time.Parse(time.RFC3339, "2024-02-04T17:25:35.448Z")
@@ -236,6 +286,24 @@ func Test_getWalletHistoryById(t *testing.T) {
 			},
 			expectedStatusCode: 200,
 			expectedResponseBody: `[{"time":"2024-02-04T17:25:35.448Z","from":"5b53700ed469fa6a09ea72bb78f36fd9","to":"eb376add88bf8e70f80787266a0801d5","amount":30}]`,
+		},
+		{
+			name: "Ok - history exists (only recieving)",
+			id: "5b53700ed469fa6a09ea72bb78f36fd9",
+			mockBehavior: func(r *mock_usecase.MockWallet, id string) {
+				t, _ := time.Parse(time.RFC3339, "2024-02-04T17:25:35.448Z")
+
+				r.EXPECT().GetWalletHistoryById(context.Background(), id).Return([]entity.Transaction{
+					{
+						Time: t,
+						From: "eb376add88bf8e70f80787266a0801d5",
+						To: "5b53700ed469fa6a09ea72bb78f36fd9",
+						Amount: 30.0,
+					},
+				}, nil)
+			},
+			expectedStatusCode: 200,
+			expectedResponseBody: `[{"time":"2024-02-04T17:25:35.448Z","from":"eb376add88bf8e70f80787266a0801d5","to":"5b53700ed469fa6a09ea72bb78f36fd9","amount":30}]`,
 		},
 		{
 			name: "Ok - history is empty",

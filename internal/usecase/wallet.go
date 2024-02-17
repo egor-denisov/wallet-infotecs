@@ -38,6 +38,10 @@ func (w *WalletUseCase) CreateNewWalletWithDefaultBalance(ctx context.Context) (
 
 // SendFunds - sending funds between wallets
 func (w *WalletUseCase) SendFunds(ctx context.Context, from string, to string, amount float64) error {
+	if amount <= 0 {
+		return entity.ErrWrongAmount
+	}
+
 	transaction := &entity.Transaction{
 		From: from,
 		To: to,
